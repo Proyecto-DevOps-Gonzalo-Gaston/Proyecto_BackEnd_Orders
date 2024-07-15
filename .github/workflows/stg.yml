@@ -46,7 +46,7 @@ jobs:
     - name: Run Tests with Maven
       run: mvn test
 
-    deploy:
+  deploy:
     runs-on: ubuntu-latest
     needs: test
 
