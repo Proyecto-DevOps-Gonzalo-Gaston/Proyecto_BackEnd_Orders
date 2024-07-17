@@ -145,11 +145,8 @@ jobs:
         run: |
           aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
 
-      - name: Tag and Push Docker image to AWS ECR
+      - name: tag y push
         run: |
-          OLD_IMAGE=$(aws ecr describe-images --repository-name proyecto-devops-gg-orders --query "images[?imageTags=='prod'].imageDigest" --output text --region ${{ secrets.AWS_REGION }})
-          if [ -n "$OLD_IMAGE" ]; then
-            aws ecr batch-delete-image --repository-name proyecto-devops-gg-orders --image-ids imageDigest=$OLD_IMAGE --region ${{ secrets.AWS_REGION }}
-          fi
-            docker tag orders-service-example:prod ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/proyecto-devops-gg-orders:prod
-            docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/proyecto-devops-gg-orders:prod
+          docker tag orders-service-example:prod ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/proyecto-devops-gg-orders:prod
+          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/proyecto-devops-gg-orders:prod
+      
