@@ -140,16 +140,16 @@ jobs:
         run: |
           mvn clean package -DskipTests
           docker build --build-arg JAR_FILE=target/orders-service-example-0.0.1-SNAPSHOT.jar -t orders-service-example:prod .
-    
+
       - name: Log in to AWS ECR
         run: |
           aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
 
       - name: Tag and Push Docker image to AWS ECR
         run: |
-          docker tag orders-service-example:prod ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/proyecto-devops-gg-orders:prod
-          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/proyecto-devops-gg-orders:prod
-      
-      - name: Delete previous image from AWS ECR
-        run: |
-          aws ecr batch-delete-image --repository-name proyecto-devops-gg-orders --image-ids imageTag=prod imageTag=latest --region ${{ secrets.AWS_REGION }}
+          OLD_IMAGE=$(aws ecr describe-images --repository-name proyecto-devops-gg-orders --query "images[?imageTags=='prod'].imageDigest" --output text --region ${{ secrets.AWS_REGION }})
+          if [ -n "$OLD_IMAGE" ]; then
+            aws ecr batch-delete-image --repository-name proyecto-devops-gg-orders --image-ids imageDigest=$OLD_IMAGE --region ${{ secrets.AWS_REGION }}
+          fi
+            docker tag orders-service-example:prod ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/proyecto-devops-gg-orders:prod
+            docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/proyecto-devops-gg-orders:prod
