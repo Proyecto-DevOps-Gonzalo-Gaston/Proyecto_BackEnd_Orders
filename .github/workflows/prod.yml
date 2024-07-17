@@ -152,4 +152,4 @@ jobs:
       
       - name: Delete previous image from AWS ECR
         run: |
-          aws ecr batch-delete-image --repository-name proyecto-devops-gg-orders --image-ids imageTag=staging,imageTag=latest --region ${{ secrets.AWS_REGION }}
+          aws ecr batch-delete-image --repository-name proyecto-devops-gg-orders --image-ids imageTag=staging imageTag=latest --region ${{ secrets.AWS_REGION }}
