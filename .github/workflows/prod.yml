@@ -45,7 +45,7 @@ jobs:
           
   Sonar:
     runs-on: ubuntu-latest
-    needs: terraform-deploy
+    needs: [terraform-deploy]
     if: always()
     steps:
       - uses: actions/checkout@v3
@@ -76,7 +76,7 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
-    needs: Sonar
+    needs: [Sonar]
     if: always() && success()
     steps:
       - name: Check out code
@@ -99,7 +99,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    needs: build
+    needs: [build]
     if: always() && success()
     steps:
     - name: Checkout código
@@ -118,7 +118,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    needs: test
+    needs: [test]
     if: always() && success()
     steps:
       - name: Check out código
