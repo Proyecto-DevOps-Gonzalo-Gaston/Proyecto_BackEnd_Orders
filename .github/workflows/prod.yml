@@ -137,10 +137,10 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Build Docker image
-        run: |
-          mvn clean package -DskipTests
-          docker build --build-arg JAR_FILE=target/orders-service-example-0.0.1-SNAPSHOT.jar -t orders-service-example:prod .
-      
+          run: |
+            mvn clean package -DskipTests
+            docker build --build-arg JAR_FILE=target/orders-service-example-0.0.1-SNAPSHOT.jar -t orders-service-example:prod .
+    
       - name: Log in to AWS ECR
         run: |
           aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
@@ -148,13 +148,13 @@ jobs:
       - name: Tag Docker image with timestamp
         run: |
           TIMESTAMP=$(date +%Y%m%d%H%M%S)
-          docker tag orders-service-example:prod ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/proyecto-devops-gg-orders:${TIMESTAMP}
+          docker tag orders-service-example:prod ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/proyecto-devops-gg-orders:prod${TIMESTAMP}
       
       - name: Push Docker image to AWS ECR
         run: |
           TIMESTAMP=$(date +%Y%m%d%H%M%S)
-          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/proyecto-devops-gg-orders:${TIMESTAMP}
+          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/proyecto-devops-gg-orders:prod${TIMESTAMP}
       
       - name: Batch delete old image
         run: |
-          aws ecr batch-delete-image --repository-name proyecto-devops-gg-orders --image-ids imageTag=${TIMESTAMP}
+          aws ecr batch-delete-image --repository-name proyecto-devops-gg-orders --image-ids imageTag=prod
