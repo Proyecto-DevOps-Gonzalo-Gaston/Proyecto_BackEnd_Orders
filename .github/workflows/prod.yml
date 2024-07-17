@@ -139,13 +139,17 @@ jobs:
       - name: Build Docker image
         run: |
           mvn clean package -DskipTests
-          docker build --build-arg JAR_FILE=target/orders-service-example-0.0.1-SNAPSHOT.jar -t orders-service-example:prod .
-        
+          docker build --build-arg JAR_FILE=target/orders-service-example-0.0.1-SNAPSHOT.jar -t orders-service-example:staging .
+    
       - name: Log in to AWS ECR
         run: |
           aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
-      
+
       - name: Tag and Push Docker image to AWS ECR
         run: |
-          docker tag orders-service-example:prod ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/proyecto-devops-gg-orders:prod
-          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/proyecto-devops-gg-orders:prod
+          docker tag orders-service-example:staging ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/proyecto-devops-gg-orders:staging
+          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/proyecto-devops-gg-orders:staging
+      
+      - name: Delete previous image from AWS ECR
+        run: |
+          aws ecr batch-delete-image --repository-name proyecto-devops-gg-orders --image-ids imageTag=staging,imageTag=latest --region ${{ secrets.AWS_REGION }}
