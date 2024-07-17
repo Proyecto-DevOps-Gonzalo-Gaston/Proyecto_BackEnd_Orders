@@ -135,45 +135,17 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ secrets.AWS_REGION }}
-          
+
       - name: Build Docker image
         run: |
           mvn clean package -DskipTests
           docker build --build-arg JAR_FILE=target/orders-service-example-0.0.1-SNAPSHOT.jar -t orders-service-example:prod .
-    
+        
       - name: Log in to AWS ECR
         run: |
           aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
       
-      - name: Tag Docker image with prod
+      - name: Tag and Push Docker image to AWS ECR
         run: |
           docker tag orders-service-example:prod ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/proyecto-devops-gg-orders:prod
-      
-      - name: Push Docker image to AWS ECR
-        run: |
           docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/proyecto-devops-gg-orders:prod
-      
-      - name: List existing images in AWS ECR
-        run: |
-          aws ecr describe-images --repository-name proyecto-devops-gg-orders --query 'imageDetails[?contains(imageTags, `prod`) == `true`].[imageTags]' --output json
-      
-      - name: Determine if multiple images with prod tag exist
-        id: check_images
-        run: |
-          images=$(aws ecr describe-images --repository-name proyecto-devops-gg-orders --query 'imageDetails[?contains(imageTags, `prod`) == `true`].[imageTags]' --output json)
-          num_images=$(echo "$images" | jq length)
-          if [[ $num_images -gt 1 ]]; then
-            echo "::set-output name=delete_required::true"
-          else
-            echo "::set-output name=delete_required::false"
-          fi
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-      
-      - name: Batch delete old image if necessary
-        if: steps.check_images.outputs.delete_required == 'true'
-        run: |
-          aws ecr batch-delete-image --repository-name proyecto-devops-gg-orders --image-ids imageTag=prod
